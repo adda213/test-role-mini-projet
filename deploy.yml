@@ -1,38 +1,12 @@
 ---
-- name: "Apache installation using docker"
-  hosts: prod
+- hosts: prod
   become: true
-  vars_files:
+  vars: 
+    system_user: admin
+  vars_files: 
     - files/secrets/credentials.yml
   pre_tasks:
-    - name: Install some package
-      package: name='{{ item }}' state=present
-      when: ansible_distribution == "CentOS"
-      loop:
-        - epel-release
-        - wget
-        - git
-    - name: download pip script
-      get_url:
-        url: https://bootstrap.pypa.io/pip/2.7/get-pip.py
-        dest: /tmp/get-pip.py
-
-    - name: install python-pip
-      command: python2.7 /tmp/get-pip.py
-
-    - name: Install docker python
-      pip: name=docker-py
-
-  tasks:
-    - name: copy website file template
-      template: 
-        src: index.html.j2
-        dest: /home/admin/index.html
-    - name: Create Apache container
-      docker_container:
-        name: webapp
-        image: httpd
-        ports:
-          - "80:80"
-        volumes: 
-          - /home/admin/index.html:/usr/local/apache2/htdocs/index.html
+    - name: create www-data
+      user: name=www-data state=present
+  roles: 
+    - { role: role-create-container-apache }
